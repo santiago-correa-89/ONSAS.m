@@ -56,9 +56,69 @@ function fext = elem2NodalLoads ( Conec, indBC, elements, boundaryCond, Nodes )
 
     %md frame
     elseif strcmp( elemType , 'frame') ; %
-      error(' not yet.');
-
-
+    
+			if strcmp( loadCoordSys, 'global' )
+        nodes     = Conec( elem, 4+(1:2) ) ;
+      else
+        error(' only global flag in load by now.');
+      end
+      
+      % Local directions 
+      % -----------------------------------------------------------------------------
+      elemLength = sqrt ( sum( ( Nodes(nodes(2),:) - Nodes(nodes(1),:) ).^2, 2 ) ) ;
+      
+      dx = Nodes(nodes(2),1) - Nodes(nodes(1),1) ;
+      dy = Nodes(nodes(2),2) - Nodes(nodes(1),2) ;
+      dz = Nodes(nodes(2),3) - Nodes(nodes(1),3) ;
+      
+      dxdl = ( dx ) ./ elemLength ; 
+			dydl = ( dy ) ./ elemLength ; 
+			dzdl = ( dz ) ./ elemLength ;
+      
+      lxy = sqrt( dx^2 + dy^2 ) ;
+      
+      exL = [ dxdl dydl dzdl ]' ;
+      
+      if dy > 1e-5*elemLength 
+				eyL = [ dx -dy 0 ]' / lxy ;
+			else	 
+				eyL = [ 0 1 0 ]' ; % Convention adopted
+			end	
+			
+			ezL = cross(exL, eyL) ;	
+			
+			xG = [1 0 0]' ;
+			yG = [0 1 0]' ;
+			zG = [0 0 1]' ;
+			 
+			% Load vectors
+			% -----------------------------------------------------------------------------	
+      % qx global
+      cosXX = exL.*xG ; cosYX = eyL.*xG ; cosZX = ezL.*xG ;
+      qxG_L = qx*[ cosXX cosYX cosZX ] ;
+      
+      % qy global
+      cosXY = exL.*yG ; cosYY = eyL.*yG ; cosZY = ezL.*yG ;
+      qyG_L = qy*[ cosXY cosYY cosZY ] ;
+    
+			% qz global
+      cosXZ = exL.*zG ; cosYZ = eyL.*zG ; cosZZ = ezL.*zG ;
+      qzG_L = qz*[ cosXZ cosYZ cosZZ ] ;
+    
+			qxL = qxG_L(1)+qyG_L(1)+qzG_L(1) ; 
+			qyL = qxG_L(2)+qyG_L(2)+qzG_L(2) ; 
+			qzL = qxG_L(3)+qyG_L(3)+qzG_L(3) ; 
+    
+			nodal_qxL = qxL * elemLength * [ 1/2 0 0 0 0 0	;  
+																			 1/2 0 0 0 0 0 ] ;
+			nodal_qyL = qyL * elemLength * [ 0 0 1/2 0 0  elemLength/12 ; 
+																			 0 0 1/2 0 0 -elemLength/12 ] ;
+			nodal_qzL = qzL * elemLength * [ 0 0 0 -elemLength/12 1/2 0 ;
+																			 0 0 0  elemLength/12 1/2 0 ] ;
+			
+    
+			elemNodeLoadsMatrix = nodal_qxL + nodal_qyL + nodal_qzL ; 
+			
     %md edge
     elseif strcmp( elemType , 'edge') ; %
       nodes          = Conec( elem, 4+(1:2) ) ;
