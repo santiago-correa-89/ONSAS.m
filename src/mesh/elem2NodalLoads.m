@@ -93,21 +93,21 @@ function fext = elem2NodalLoads ( Conec, indBC, elements, boundaryCond, Nodes )
 			 
 			% Load vectors
 			% -----------------------------------------------------------------------------	
-      % qx global
-      cosXX = exL.*xG ; cosYX = eyL.*xG ; cosZX = ezL.*xG ;
+			qx = loadvals(1) ; qy = loadvals(3) ; qz = loadvals(5) ;
+
+      % qx global      
+      cosXX = (exL.*xG)(1) ; cosYX = (eyL.*xG)(1) ; cosZX = (ezL.*xG)(1) ;
       qxG_L = qx*[ cosXX cosYX cosZX ] ;
-      
       % qy global
-      cosXY = exL.*yG ; cosYY = eyL.*yG ; cosZY = ezL.*yG ;
+      cosXY = (exL.*yG)(2) ; cosYY = (eyL.*yG)(2) ; cosZY = (ezL.*yG)(2) ;
       qyG_L = qy*[ cosXY cosYY cosZY ] ;
-    
 			% qz global
-      cosXZ = exL.*zG ; cosYZ = eyL.*zG ; cosZZ = ezL.*zG ;
+      cosXZ = (exL.*zG)(3) ; cosYZ = (eyL.*zG)(3) ; cosZZ = (ezL.*zG)(3) ;
       qzG_L = qz*[ cosXZ cosYZ cosZZ ] ;
-    
+			
 			qxL = qxG_L(1)+qyG_L(1)+qzG_L(1) ; 
-			qyL = qxG_L(2)+qyG_L(2)+qzG_L(2) ; 
-			qzL = qxG_L(3)+qyG_L(3)+qzG_L(3) ; 
+			qyL = qxG_L(2)+qyG_L(2)+qzG_L(2) ;
+			qzL = qxG_L(3)+qyG_L(3)+qzG_L(3) ;
     
 			nodal_qxL = qxL * elemLength * [ 1/2 0 0 0 0 0	;  
 																			 1/2 0 0 0 0 0 ] ;
@@ -117,7 +117,8 @@ function fext = elem2NodalLoads ( Conec, indBC, elements, boundaryCond, Nodes )
 																			 0 0 0  elemLength/12 1/2 0 ] ;
 			
     
-			elemNodeLoadsMatrix = nodal_qxL + nodal_qyL + nodal_qzL ; 
+			elemNodeLoadsMatrix = nodal_qxL + nodal_qyL + nodal_qzL ;
+			
 			
     %md edge
     elseif strcmp( elemType , 'edge') ; %
@@ -207,3 +208,4 @@ function fext = elem2NodalLoads ( Conec, indBC, elements, boundaryCond, Nodes )
       fext( aux ) = fext( aux ) + loadedNodes(i,2:7)' ;
     end
   end
+
